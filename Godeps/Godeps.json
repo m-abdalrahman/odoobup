@@ -1,0 +1,16 @@
+{
+	"ImportPath": "github.com/m-abdalrahman/odoobup",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.3.0-25-g074dffc",
+			"Rev": "074dffcc83e9f421e261526d297cd93f22a34080"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "c200b10b5d5e122be351b67af224adc6128af5bf"
+		}
+	]
+}
