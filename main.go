@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,7 +13,7 @@ import (
 )
 
 var (
-	version = "1.0.0.beta1"
+	version = "1.0.0.beta2"
 
 	//subcommands
 	add, del, skip *flag.FlagSet
@@ -53,7 +52,7 @@ func main() {
 	flag.Parse()
 
 	if len(flag.Args()) == 0 && len(allConfig()) == 0 {
-		fmt.Println("no configuration setting found. See `odoobup help`\n" +
+		fmt.Fprintln(os.Stderr, "no configuration setting found. See `odoobup help`\n"+
 			"or try `odoobup add` to add new configuration setting")
 		os.Exit(1)
 	} else {
@@ -65,7 +64,7 @@ func main() {
 				idSliceStr := strings.Split(id, ",")
 				idSlice, err := sliceAtoi(idSliceStr)
 				if err != nil {
-					log.Println(err)
+					fmt.Fprintln(os.Stderr, err)
 					os.Exit(1)
 				}
 
@@ -87,7 +86,7 @@ func main() {
 	} else if flag.Arg(0) == "del" { // show subcommand
 		delCommand()
 	} else {
-		fmt.Printf("unknown subcommand `%s`, See `odoobup help`\n", flag.Arg(0))
+		fmt.Fprintf(os.Stderr, "unknown subcommand `%s`, See `odoobup help`\n", flag.Arg(0))
 		os.Exit(1)
 	}
 }
@@ -107,14 +106,14 @@ func addCommand() {
 	add.Parse(flag.Args()[1:])
 
 	if OdooURL == "" || dbName == "" || pass == "" || backupDir == "" || odooVerion == 0.0 {
-		fmt.Println("all flags required.")
-		fmt.Println("example: `odoobup add -url='http://localhost:8069' -db_name='odoo'" +
+		fmt.Fprintln(os.Stderr, "all flags required.")
+		fmt.Fprintln(os.Stderr, "example: `odoobup add -url='http://localhost:8069' -db_name='odoo'"+
 			" -password='odoo mastre password' -backup_dir='/home/odoo/odoo_backup' -version=8.0`")
 		os.Exit(1)
 	}
 
 	if odooVerion < 8.0 {
-		log.Println("odoobup not support version", odooVerion)
+		fmt.Fprintln(os.Stderr, "odoobup not support version", odooVerion)
 		os.Exit(1)
 	}
 
@@ -128,7 +127,7 @@ func addCommand() {
 
 	_, err := NewConfig(ci)
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
@@ -145,13 +144,13 @@ func delCommand() {
 	del.Parse(flag.Args()[1:])
 
 	if delID == 0 {
-		fmt.Println("Please add id number to delete it using -n flag.\nexample: `odoobup delete -n=1`")
+		fmt.Fprintln(os.Stderr, "Please add id number to delete it using -n flag.\nexample: `odoobup delete -n=1`")
 		os.Exit(1)
 	}
 
 	err := DeleteConfig(delID)
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
@@ -171,7 +170,7 @@ func backup(i ...int) {
 		for _, v := range i {
 			c, err := ConfigByID(v)
 			if err != nil {
-				log.Println(err)
+				fmt.Fprintln(os.Stderr, err)
 			}
 
 			if c.Info.Version == 8.0 {
@@ -206,7 +205,7 @@ func backupPOST(urlPath string, ci ConfigInfo) {
 // Processing response
 func response(resp *http.Response, ci ConfigInfo, err error) {
 	if err != nil {
-		fmt.Printf("Err: %s, database:%s... connection refused\n", ci.URL, ci.DBName)
+		fmt.Fprintf(os.Stderr, "Err: %s, database:%s... connection refused\n", ci.URL, ci.DBName)
 		return
 	}
 
@@ -219,14 +218,14 @@ func response(resp *http.Response, ci ConfigInfo, err error) {
 
 	out, err := os.Create(ci.BackupDir + "/" + fileName)
 	if err != nil {
-		fmt.Printf("\nErr: %s, database:%s... Database does not exist or Access denied.\n", ci.URL, ci.DBName)
+		fmt.Fprintf(os.Stderr, "\nErr: %s, database:%s... Database does not exist or Access denied.\n", ci.URL, ci.DBName)
 		return
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 	fmt.Println("Done")
@@ -235,7 +234,7 @@ func response(resp *http.Response, ci ConfigInfo, err error) {
 func allConfig() []Config {
 	allConfig, err := AllConfig()
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	return allConfig

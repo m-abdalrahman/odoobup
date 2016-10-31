@@ -22,7 +22,7 @@ optional arguments:
      -h                     show this help message
      -n                     backup by id
 
- subcommand:
+subcommand:
      help                   show this help message
      add                    add new configuration setting
      show                   show all configurations
