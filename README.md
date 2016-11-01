@@ -4,7 +4,7 @@ odoobup Command Line Interface to backup from different odoo services, support o
 
 ## Quick Start
 
- 1. download your version from [here](https://github.com/m-abdalrahman/odoobup/releases/tag/v1.0.0-beta1)
+ 1. download your version from [here](https://github.com/m-abdalrahman/odoobup/releases/tag/v1.0.0-beta2)
  2. unzip the file
  3. move your version to `/usr/bin`
 
