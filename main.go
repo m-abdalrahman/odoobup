@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
 var (
@@ -214,21 +216,31 @@ func response(resp *http.Response, ci ConfigInfo, err error) {
 	fileName := resp.Header.Get("Content-Disposition")
 	fileName = strings.Replace(fileName, "attachment; filename*=UTF-8''", "", -1)
 
-	fmt.Printf("Get: %s, database:%s... ", ci.URL, ci.DBName)
-
 	out, err := os.Create(ci.BackupDir + "/" + fileName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\nErr: %s, database:%s... Database does not exist or Access denied.\n", ci.URL, ci.DBName)
+		fmt.Fprintf(os.Stderr, "Err: %s, database:%s... Database does not exist or Access denied.\n", ci.URL, ci.DBName)
 		return
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, resp.Body)
+	prefix := fmt.Sprintf("Get: %s, database:%s... ", ci.URL, ci.DBName)
+	bar := pb.New64(resp.ContentLength).SetUnits(pb.U_BYTES).Prefix(prefix)
+	bar.ShowBar = false
+	bar.ShowPercent = false
+	bar.ShowFinalTime = false
+	bar.ShowTimeLeft = false
+	bar.Start()
+
+	reader := bar.NewProxyReader(resp.Body)
+
+	_, err = io.Copy(out, reader)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	fmt.Println("Done")
+
+	bar.Postfix("Done")
+	bar.Finish()
 }
 
 func allConfig() []Config {
