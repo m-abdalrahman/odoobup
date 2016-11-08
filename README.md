@@ -2,6 +2,8 @@
 
 odoobup Command Line Interface to backup from different odoo services, support odoo version 8, 9, and 10, only work on linux.
 
+![Screenshot](./screenshot.gif)
+
 ## Quick Start
 
  1. download your version from [here](https://github.com/m-abdalrahman/odoobup/releases/tag/v1.0.0-beta2)
