@@ -59,7 +59,7 @@ func dbSetup() *bolt.DB {
 	return db
 }
 
-func (c *Config) MarshalBinary() (data []byte, err error) {
+func (c *Config) Encode() (data []byte, err error) {
 	w := new(bytes.Buffer)
 	encoder := gob.NewEncoder(w)
 	err = encoder.Encode(c.Info)
@@ -69,7 +69,7 @@ func (c *Config) MarshalBinary() (data []byte, err error) {
 	return w.Bytes(), nil
 }
 
-func (c *Config) UnmarshalBinary(data []byte) error {
+func (c *Config) Decode(data []byte) error {
 	r := bytes.NewBuffer(data)
 	decoder := gob.NewDecoder(r)
 	return decoder.Decode(&c.Info)
@@ -85,7 +85,7 @@ func NewConfig(ci *ConfigInfo) (*Config, error) {
 		c.ID = int(seq)
 		c.Info = *ci
 
-		encoding, err := c.MarshalBinary()
+		encoding, err := c.Encode()
 		if err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func ConfigByID(id int) (*Config, error) {
 			return errors.New("The ID " + idStr + " was not Found")
 		}
 
-		if err := config.UnmarshalBinary(v); err != nil {
+		if err := config.Decode(v); err != nil {
 			return err
 		}
 		config.ID = id
@@ -134,7 +134,7 @@ func AllConfig() ([]Config, error) {
 	err := db.View(func(tx *bolt.Tx) error {
 		if err := tx.Bucket([]byte("config")).ForEach(func(k, v []byte) error {
 			config.ID, _ = strconv.Atoi(string(k))
-			if err := config.UnmarshalBinary(v); err != nil {
+			if err := config.Decode(v); err != nil {
 				return err
 			}
 
